@@ -1,0 +1,45 @@
+模組接口
+輸入輸出說明
+DATA_R, DATA_G, DATA_B：控制紅、綠、藍三色 LED 的顯示。
+COMM：LED 的列選擇訊號。
+s, s4：狀態控制訊號，與新方塊的產生相關。
+left, right, change, down：控制按鍵的輸入訊號，用來操作方塊的移動或旋轉。
+enable：始終為高電位（1），可能用於啟用某些外部模組。
+IH、testled：測試用途的訊號。
+level：用來表示當前的等級，會隨著清除的行數增加而提升。
+z：用於 LED 顯示的數字。
+CLK：主時鐘訊號。
+變數與參數定義
+blank：全為 1 的 8 位元陣列，用於清空行列。
+blank_Char, windows_Char, front_Char 等：定義了不同的字元圖案，用於 LED 的顯示。
+tetris：定義了不同的俄羅斯方塊形狀，包括 I, J, L, O, S, T, Z 的旋轉形態。
+初始化部分
+初始狀態中，cnt, x, y, rotate, level_n 等變數設為初始值。
+DATA_R, DATA_G, DATA_B 設定為全亮（全為 1）。
+over 設為 0 表示遊戲尚未結束。
+主要邏輯
+屏幕更新 (always @posedge CLK_div)
+
+使用 cnt 輪詢 COMM，切換顯示的 LED 行。
+若需要產生新方塊（newblock 為高電位），則：
+使用 back_Char & front_Char 更新背景陣列。
+根據狀態 s4 決定新方塊的形狀。
+清除已滿的一行：
+檢查每列是否有 0（表示未填滿），若滿行則清除並將上方內容下移。
+若清除後等級滿（level == 8'b11111111），則提升等級並加速遊戲。
+若遊戲畫面（back_Char）與遊戲結束畫面（over_Char）有重疊，判定遊戲結束。
+分頻器模組
+
+使用 divfreq 等分頻器，將時鐘訊號分頻，用於調整遊戲速度或控制 LED 的更新頻率。
+功能重點
+方塊邏輯
+
+各種形狀的方塊定義在 tetris 參數中，並通過變數 rotate 控制旋轉狀態。
+方塊的下落和移動由按鍵訊號（left, right, down）控制。
+遊戲等級
+
+隨著消除的行數增加，level 逐步累積並提升等級。
+等級提升後，遊戲速度加快。
+遊戲結束
+
+當新的方塊無法產生時（over_Char 和 back_Char 發生碰撞），遊戲結束。
